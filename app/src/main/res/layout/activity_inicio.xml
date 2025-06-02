@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="24dp"
+    android:gravity="center"
+    android:background="#f2f2f2">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Bienvenido al Juego"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="24dp"
+        android:gravity="center"/>
+
+    <Spinner
+        android:id="@+id/spinnerJugadores"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        android:id="@+id/txtEstadisticas"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textSize="16sp"
+        android:textStyle="italic"
+        android:layout_marginBottom="16dp" />
+
+    <Button
+        android:id="@+id/btnNuevoJugador"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Nuevo Jugador"
+        android:layout_marginBottom="8dp"/>
+
+
+    <Switch
+        android:id="@+id/switchRepetidos"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Permitir repetición de cifras"
+        android:layout_marginBottom="16dp"/>
+
+
+    <Button
+        android:id="@+id/btnNuevaPartida"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Nueva Partida"
+        android:layout_marginBottom="8dp"
+        android:enabled="false"/>
+
+    <Button
+        android:id="@+id/btnContinuarPartida"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Continuar Partida"
+        android:enabled="false"/>
+</LinearLayout>
