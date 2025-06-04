@@ -2,6 +2,9 @@ package com.example.juegodelosnumeros;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
 import android.view.View;
 import android.widget.*;
 import androidx.appcompat.app.AlertDialog;
@@ -24,6 +27,10 @@ public class JuegoActivity extends AppCompatActivity {
     private TextView txtJugador, txtIntento, txtResultado;
     private EditText inputNumero;
     private Button btnVerificar;
+
+    private Button btnVolverMenu;
+    private Button btnReiniciar;
+    private Button btnFinalizar;
 
     private String numeroSecreto;
     private int intentoActual = 1;
@@ -50,6 +57,10 @@ public class JuegoActivity extends AppCompatActivity {
         inputNumero = findViewById(R.id.inputNumero);
         btnVerificar = findViewById(R.id.btnVerificar);
         layoutHistorial = findViewById(R.id.layoutHistorial);
+        btnVolverMenu = findViewById(R.id.btnVolverMenu);
+        btnReiniciar = findViewById(R.id.btnReiniciar);
+        btnFinalizar = findViewById(R.id.btnFinalizar);
+
 
         // Inicializar preferencias y Gson
         prefs = getSharedPreferences("mis_prefs", MODE_PRIVATE);
@@ -134,6 +145,38 @@ public class JuegoActivity extends AppCompatActivity {
                 }
             }
         });
+
+        btnVolverMenu.setOnClickListener(v -> {
+            finish(); // vuelve atrás, al menú
+        });
+
+        btnReiniciar.setOnClickListener(v -> {
+            new AlertDialog.Builder(this)
+                    .setTitle("Reiniciar partida")
+                    .setMessage("¿Querés reiniciar la partida actual desde cero?")
+                    .setPositiveButton("Sí, reiniciar", (dialog, which) -> {
+                        Intent intent = new Intent(JuegoActivity.this, JuegoActivity.class);
+                        intent.putExtra("nombreJugador", nombreJugador);
+                        boolean permitirRepetidos = prefs.getBoolean("juego_repetidos", false);
+                        intent.putExtra("permitirRepetidos", permitirRepetidos);
+                        startActivity(intent);
+                        finish();
+                    })
+                    .setNegativeButton("Cancelar", null)
+                    .show();
+        });
+
+        btnFinalizar.setOnClickListener(v -> {
+            new AlertDialog.Builder(this)
+                    .setTitle("Finalizar partida")
+                    .setMessage("¿Querés finalizar esta partida?")
+                    .setPositiveButton("Sí", (dialog, which) -> mostrarDialogoFinal(false))
+                    .setNegativeButton("Cancelar", null)
+                    .show();
+        });
+
+
+
 
     }
 
@@ -243,11 +286,30 @@ public class JuegoActivity extends AppCompatActivity {
 
     private void agregarEntradaHistorial(String texto) {
         TextView tv = new TextView(this);
-        tv.setText(texto);
-        tv.setTextSize(14);
-        tv.setTextColor(getResources().getColor(android.R.color.black));
+        tv.setTextSize(16); // 🔠 Tamaño un poco más grande
+
+        // 🎨 Preparar texto con colores por letra
+        SpannableString spannable = new SpannableString(texto);
+
+        int verde = getResources().getColor(android.R.color.holo_green_dark);
+        int naranja = getResources().getColor(android.R.color.holo_orange_dark);
+        int rojo = getResources().getColor(android.R.color.holo_red_dark);
+
+        for (int i = 0; i < texto.length(); i++) {
+            char c = texto.charAt(i);
+            if (c == 'B') {
+                spannable.setSpan(new ForegroundColorSpan(verde), i, i + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            } else if (c == 'R') {
+                spannable.setSpan(new ForegroundColorSpan(naranja), i, i + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            } else if (c == 'M') {
+                spannable.setSpan(new ForegroundColorSpan(rojo), i, i + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+        }
+
+        tv.setText(spannable);
         layoutHistorial.addView(tv);
     }
+
 
 
 

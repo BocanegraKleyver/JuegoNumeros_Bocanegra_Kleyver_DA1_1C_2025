@@ -55,8 +55,19 @@ public class InicioActivity extends AppCompatActivity {
 
 
         if (!listaJugadores.isEmpty()) {
-            spinnerJugadores.setSelection(0); // fuerza el evento de selección
+            String jugadorActivo = prefs.getString("juego_jugador", null);
+            if (jugadorActivo != null) {
+                for (int i = 0; i < listaJugadores.size(); i++) {
+                    if (listaJugadores.get(i).getNombre().equals(jugadorActivo)) {
+                        spinnerJugadores.setSelection(i);
+                        break;
+                    }
+                }
+            } else {
+                spinnerJugadores.setSelection(0);
+            }
         }
+
 
         btnNuevoJugador.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -147,15 +158,22 @@ public class InicioActivity extends AppCompatActivity {
 
                     if (enCurso && jugador.getNombre().equals(jugadorActivo)) {
                         resumen += "\n📌 Partida activa";
+                        btnContinuarPartida.setEnabled(true);
+                        btnContinuarPartida.setText("▶️ Continuar Partida");
+                    } else {
+                        btnContinuarPartida.setEnabled(false);
+                        btnContinuarPartida.setText("⛔ Sin partida activa");
                     }
 
                     txtEstadisticas.setText(resumen);
 
-
                 } else {
                     txtEstadisticas.setText("");
+                    btnContinuarPartida.setEnabled(false);
+                    btnContinuarPartida.setText("⛔ Sin partida activa");
                 }
             }
+
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
@@ -170,10 +188,36 @@ public class InicioActivity extends AppCompatActivity {
 
     private void mostrarDialogoNuevoJugador() {
         if (listaJugadores.size() >= 3) {
-            Toast.makeText(this, "Máximo de 3 jugadores alcanzado", Toast.LENGTH_SHORT).show();
+            // Mostrar diálogo para eliminar un jugador existente
+            String[] nombres = new String[listaJugadores.size()];
+            for (int i = 0; i < listaJugadores.size(); i++) {
+                nombres[i] = listaJugadores.get(i).getNombre();
+            }
+
+            new AlertDialog.Builder(this)
+                    .setTitle("Máximo de jugadores")
+                    .setMessage("Ya hay 3 jugadores creados. ¿Querés eliminar uno para crear un nuevo perfil?")
+                    .setPositiveButton("Sí, eliminar uno", (dialog, which) -> {
+                        // Diálogo de selección para eliminar
+                        new AlertDialog.Builder(this)
+                                .setTitle("Elegí un jugador para eliminar")
+                                .setItems(nombres, (dialog2, index) -> {
+                                    listaJugadores.remove(index);
+                                    guardarJugadores();
+                                    configurarSpinner();
+                                    Toast.makeText(this, "Jugador eliminado. Ahora podés crear uno nuevo.", Toast.LENGTH_SHORT).show();
+                                    mostrarDialogoNuevoJugador(); // Reinicia el flujo para agregar el nuevo
+                                })
+                                .setNegativeButton("Cancelar", null)
+                                .show();
+                    })
+                    .setNegativeButton("Cancelar", null)
+                    .show();
+
             return;
         }
 
+        // Diálogo normal de creación
         final EditText input = new EditText(this);
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Nuevo Jugador");
@@ -194,6 +238,7 @@ public class InicioActivity extends AppCompatActivity {
                     listaJugadores.add(new Jugador(nombre));
                     guardarJugadores();
                     configurarSpinner();
+                    spinnerJugadores.setSelection(listaJugadores.size() - 1);
                 }
             }
         });
@@ -201,6 +246,7 @@ public class InicioActivity extends AppCompatActivity {
         builder.setNegativeButton("Cancelar", null);
         builder.show();
     }
+
 
     private String generarNumeroSecretoInternamente(boolean permitirRepetidos) {
         Random rand = new Random();
@@ -219,6 +265,24 @@ public class InicioActivity extends AppCompatActivity {
         }
 
         return numero.toString();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        cargarJugadores();
+        configurarSpinner();
+
+        // 🔁 Restaurar selección del jugador activo después de configurar el spinner
+        String jugadorActivo = prefs.getString("juego_jugador", null);
+        if (jugadorActivo != null) {
+            for (int i = 0; i < listaJugadores.size(); i++) {
+                if (listaJugadores.get(i).getNombre().equals(jugadorActivo)) {
+                    spinnerJugadores.setSelection(i);
+                    break;
+                }
+            }
+        }
     }
 
 

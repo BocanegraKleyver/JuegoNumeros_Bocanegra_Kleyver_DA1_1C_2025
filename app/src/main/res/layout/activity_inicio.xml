@@ -5,8 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="24dp"
-    android:gravity="center"
-    android:background="#f2f2f2">
+    android:gravity="top|center_horizontal"
+    android:background="#f2f2f2"
+    android:weightSum="1">
 
     <TextView
         android:layout_width="wrap_content"
@@ -30,30 +31,28 @@
         android:text=""
         android:textSize="16sp"
         android:textStyle="italic"
-        android:layout_marginBottom="16dp" />
+        android:layout_marginBottom="32dp" />
 
     <Button
         android:id="@+id/btnNuevoJugador"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Nuevo Jugador"
-        android:layout_marginBottom="8dp"/>
-
+        android:layout_marginBottom="16dp"/>
 
     <Switch
         android:id="@+id/switchRepetidos"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Permitir repetición de cifras"
-        android:layout_marginBottom="16dp"/>
-
+        android:layout_marginBottom="32dp"/>
 
     <Button
         android:id="@+id/btnNuevaPartida"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Nueva Partida"
-        android:layout_marginBottom="8dp"
+        android:layout_marginBottom="16dp"
         android:enabled="false"/>
 
     <Button
