@@ -47,6 +47,13 @@
             android:text="Verificar"
             android:layout_marginBottom="16dp" />
 
+        <Button
+            android:id="@+id/btnAyuda"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🆘 Pedir Ayuda"
+            android:layout_marginBottom="16dp" />
+
         <TextView
             android:id="@+id/txtResultado"
             android:layout_width="wrap_content"

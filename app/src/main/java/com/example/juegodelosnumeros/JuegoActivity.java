@@ -44,6 +44,9 @@ public class JuegoActivity extends AppCompatActivity {
     private LinearLayout layoutHistorial;
     private ArrayList<String> historialIntentos = new ArrayList<>();
 
+    private Button btnAyuda;
+    private int ayudasRestantes = 3;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +59,7 @@ public class JuegoActivity extends AppCompatActivity {
         txtResultado = findViewById(R.id.txtResultado);
         inputNumero = findViewById(R.id.inputNumero);
         btnVerificar = findViewById(R.id.btnVerificar);
+        btnAyuda = findViewById(R.id.btnAyuda);
         layoutHistorial = findViewById(R.id.layoutHistorial);
         btnVolverMenu = findViewById(R.id.btnVolverMenu);
         btnReiniciar = findViewById(R.id.btnReiniciar);
@@ -175,7 +179,43 @@ public class JuegoActivity extends AppCompatActivity {
                     .show();
         });
 
+        btnAyuda.setOnClickListener(v -> {
+            if (ayudasRestantes <= 0) {
+                Toast.makeText(this, "Ya usaste las 3 ayudas", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
+            String intento = inputNumero.getText().toString().trim();
+
+            if (intento.length() != 4 || !intento.matches("\\d{4}")) {
+                Toast.makeText(this, "Ingresá un número válido antes de pedir ayuda", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            new AlertDialog.Builder(this)
+                    .setTitle("🆘 Ayuda")
+                    .setMessage("¿Querés usar una ayuda? Solo podés usarla 3 veces por partida.")
+                    .setPositiveButton("Sí", (dialog, which) -> {
+                        StringBuilder pistas = new StringBuilder();
+                        for (int i = 0; i < 4; i++) {
+                            if (intento.charAt(i) == numeroSecreto.charAt(i)) {
+                                pistas.append("✔️ La cifra en la posición ").append(i + 1).append(" es correcta.\n");
+                            } else {
+                                pistas.append("❌ La cifra en la posición ").append(i + 1).append(" es incorrecta.\n");
+                            }
+                        }
+
+                        ayudasRestantes--;
+
+                        new AlertDialog.Builder(this)
+                                .setTitle("Resultado de la Ayuda")
+                                .setMessage(pistas.toString() + "\nAyudas restantes: " + ayudasRestantes)
+                                .setPositiveButton("OK", null)
+                                .show();
+                    })
+                    .setNegativeButton("Cancelar", null)
+                    .show();
+        });
 
 
     }
