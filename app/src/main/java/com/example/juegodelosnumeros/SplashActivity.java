@@ -5,11 +5,21 @@ import android.os.Bundle;
 import android.os.Handler;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+
 public class SplashActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
+
+        View splashLayout = findViewById(R.id.splashLayout); // o el ID raíz de tu layout
+        Animation fadeIn = AnimationUtils.loadAnimation(this, R.anim.fade_in);
+        splashLayout.startAnimation(fadeIn);
+
+
 
         new Handler().postDelayed(new Runnable() {
             @Override

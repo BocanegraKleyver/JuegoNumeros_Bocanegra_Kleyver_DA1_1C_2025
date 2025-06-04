@@ -34,6 +34,9 @@ public class JuegoActivity extends AppCompatActivity {
     private ArrayList<Jugador> listaJugadores;
     private String nombreJugador;
 
+    private LinearLayout layoutHistorial;
+    private ArrayList<String> historialIntentos = new ArrayList<>();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,41 +49,69 @@ public class JuegoActivity extends AppCompatActivity {
         txtResultado = findViewById(R.id.txtResultado);
         inputNumero = findViewById(R.id.inputNumero);
         btnVerificar = findViewById(R.id.btnVerificar);
+        layoutHistorial = findViewById(R.id.layoutHistorial);
 
-        // Inicializar SharedPreferences y Gson
+        // Inicializar preferencias y Gson
         prefs = getSharedPreferences("mis_prefs", MODE_PRIVATE);
         gson = new Gson();
-
-        // Obtener datos del intent
-        nombreJugador = getIntent().getStringExtra("nombreJugador");
-        boolean permitirRepetidos = getIntent().getBooleanExtra("permitirRepetidos", false);
-
-        // Mostrar nombre y cargar jugadores
-        txtJugador.setText("Jugador: " + nombreJugador);
         listaJugadores = cargarJugadores();
 
-        // Generar número secreto
-        numeroSecreto = generarNumeroSecreto(permitirRepetidos);
+        boolean continuar = getIntent().getBooleanExtra("continuar", false);
+
+        if (continuar) {
+            // Cargar partida guardada
+            nombreJugador = prefs.getString("juego_jugador", "Jugador");
+            numeroSecreto = prefs.getString("juego_numero", "");
+            intentoActual = prefs.getInt("juego_intento", 1);
+
+            String jsonHistorial = prefs.getString("juego_historial", null);
+            if (jsonHistorial != null) {
+                Type type = new TypeToken<ArrayList<String>>() {}.getType();
+                historialIntentos = gson.fromJson(jsonHistorial, type);
+
+                for (String entrada : historialIntentos) {
+                    agregarEntradaHistorial(entrada);
+                }
+            }
+
+        } else {
+            // Nueva partida
+            nombreJugador = getIntent().getStringExtra("nombreJugador");
+            boolean permitirRepetidos = getIntent().getBooleanExtra("permitirRepetidos", false);
+            numeroSecreto = generarNumeroSecreto(permitirRepetidos);
+            intentoActual = 1;
+
+            // Guardar datos iniciales
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putString("juego_jugador", nombreJugador);
+            editor.putString("juego_numero", numeroSecreto);
+            editor.putInt("juego_intento", intentoActual);
+            editor.putBoolean("juego_enCurso", true);
+            editor.apply();
+        }
+
+        txtJugador.setText("Jugador: " + nombreJugador);
+        txtIntento.setText("Intento " + intentoActual + " de " + MAX_INTENTOS);
         System.out.println("DEBUG - Número secreto: " + numeroSecreto);
 
-        // Configurar botón
+
         btnVerificar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String intento = inputNumero.getText().toString().trim();
 
-                if (intento.length() != 4) {
-                    Toast.makeText(JuegoActivity.this, "Ingresá 4 cifras", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                if (!intento.matches("\\d{4}")) {
-                    Toast.makeText(JuegoActivity.this, "Solo se permiten números", Toast.LENGTH_SHORT).show();
+                if (intento.length() != 4 || !intento.matches("\\d{4}")) {
+                    Toast.makeText(JuegoActivity.this, "Ingresá 4 cifras válidas", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
                 String resultado = evaluarIntento(intento);
                 txtResultado.setText("Resultado: " + resultado);
+
+                // 📋 Guardar intento en historial
+                String entrada = "Intento " + intentoActual + ": " + intento + " → " + resultado;
+                historialIntentos.add(entrada);
+                agregarEntradaHistorial(entrada);
 
                 if (resultado.equals("4B 0R 0M")) {
                     mostrarDialogoFinal(true);
@@ -90,12 +121,22 @@ public class JuegoActivity extends AppCompatActivity {
                     intentoActual++;
                     txtIntento.setText("Intento " + intentoActual + " de " + MAX_INTENTOS);
                     inputNumero.setText("");
+
+                    // Guardar avance
+                    SharedPreferences.Editor editor = prefs.edit();
+                    editor.putInt("juego_intento", intentoActual);
+
+                    // 💾 También guardamos historial
+                    String jsonHistorial = gson.toJson(historialIntentos);
+                    editor.putString("juego_historial", jsonHistorial);
+
+                    editor.apply();
                 }
             }
         });
 
-        txtIntento.setText("Intento 1 de " + MAX_INTENTOS);
     }
+
 
 
     private String generarNumeroSecreto(boolean permitirRepetidos) {
@@ -157,6 +198,14 @@ public class JuegoActivity extends AppCompatActivity {
         editor.putString("jugadores_guardados", json);
         editor.apply();
 
+        SharedPreferences.Editor clear = prefs.edit();
+        clear.remove("juego_jugador");
+        clear.remove("juego_numero");
+        clear.remove("juego_intento");
+        clear.putBoolean("juego_enCurso", false);
+        clear.apply();
+
+
         // Mostrar mensaje final
         new AlertDialog.Builder(this)
                 .setTitle(gano ? "Ganaste" : "Perdiste")
@@ -167,7 +216,19 @@ public class JuegoActivity extends AppCompatActivity {
                     startActivity(intent);
                     finish();
                 })
+                .setNegativeButton("Jugar otra vez", (dialog, which) -> {
+                    Intent intent = new Intent(JuegoActivity.this, JuegoActivity.class);
+                    intent.putExtra("nombreJugador", nombreJugador);
+
+                    boolean permitirRepetidos = prefs.getBoolean("juego_repetidos", false);
+                    intent.putExtra("permitirRepetidos", permitirRepetidos);
+
+
+                    startActivity(intent);
+                    finish();
+                })
                 .show();
+
     }
 
     private ArrayList<Jugador> cargarJugadores() {
@@ -178,6 +239,16 @@ public class JuegoActivity extends AppCompatActivity {
         }
         return new ArrayList<>();
     }
+
+
+    private void agregarEntradaHistorial(String texto) {
+        TextView tv = new TextView(this);
+        tv.setText(texto);
+        tv.setTextSize(14);
+        tv.setTextColor(getResources().getColor(android.R.color.black));
+        layoutHistorial.addView(tv);
+    }
+
 
 
 }

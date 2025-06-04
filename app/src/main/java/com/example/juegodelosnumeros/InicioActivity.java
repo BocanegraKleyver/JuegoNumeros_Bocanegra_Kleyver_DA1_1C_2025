@@ -13,6 +13,7 @@ import android.content.Intent;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Random;
 
 public class InicioActivity extends AppCompatActivity {
 
@@ -48,6 +49,11 @@ public class InicioActivity extends AppCompatActivity {
         cargarJugadores();
         configurarSpinner();
 
+
+        boolean hayPartida = prefs.getBoolean("juego_enCurso", false);
+        btnContinuarPartida.setEnabled(hayPartida);
+
+
         if (!listaJugadores.isEmpty()) {
             spinnerJugadores.setSelection(0); // fuerza el evento de selección
         }
@@ -70,6 +76,17 @@ public class InicioActivity extends AppCompatActivity {
                     Intent intent = new Intent(InicioActivity.this, JuegoActivity.class);
                     intent.putExtra("nombreJugador", jugadorSeleccionado.getNombre());
                     intent.putExtra("permitirRepetidos", switchRepetidos.isChecked());
+
+                    // Guardar estado inicial de la partida
+                    SharedPreferences.Editor editor = prefs.edit();
+                    editor.putString("juego_jugador", jugadorSeleccionado.getNombre());
+                    editor.putString("juego_numero", generarNumeroSecretoInternamente(switchRepetidos.isChecked()));
+                    editor.putInt("juego_intento", 1);
+                    editor.putBoolean("juego_enCurso", true);
+                    editor.putBoolean("juego_repetidos", switchRepetidos.isChecked()); // ✅ Guardamos la elección del switch
+                    editor.apply();
+
+
                     startActivity(intent);
 
                 } else {
@@ -77,6 +94,16 @@ public class InicioActivity extends AppCompatActivity {
                 }
             }
         });
+
+        btnContinuarPartida.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(InicioActivity.this, JuegoActivity.class);
+                intent.putExtra("continuar", true); // importante para saber que es modo continuación
+                startActivity(intent);
+            }
+        });
+
 
     }
 
@@ -111,9 +138,20 @@ public class InicioActivity extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 if (position >= 0 && position < listaJugadores.size()) {
                     Jugador jugador = listaJugadores.get(position);
+
                     String resumen = "Ganadas: " + jugador.getPartidasGanadas() +
                             " | Perdidas: " + jugador.getPartidasPerdidas();
+
+                    String jugadorActivo = prefs.getString("juego_jugador", null);
+                    boolean enCurso = prefs.getBoolean("juego_enCurso", false);
+
+                    if (enCurso && jugador.getNombre().equals(jugadorActivo)) {
+                        resumen += "\n📌 Partida activa";
+                    }
+
                     txtEstadisticas.setText(resumen);
+
+
                 } else {
                     txtEstadisticas.setText("");
                 }
@@ -147,6 +185,12 @@ public class InicioActivity extends AppCompatActivity {
             public void onClick(DialogInterface dialog, int which) {
                 String nombre = input.getText().toString().trim();
                 if (!nombre.isEmpty()) {
+                    for (Jugador j : listaJugadores) {
+                        if (j.getNombre().equalsIgnoreCase(nombre)) {
+                            Toast.makeText(InicioActivity.this, "Ya existe un jugador con ese nombre", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                    }
                     listaJugadores.add(new Jugador(nombre));
                     guardarJugadores();
                     configurarSpinner();
@@ -157,4 +201,25 @@ public class InicioActivity extends AppCompatActivity {
         builder.setNegativeButton("Cancelar", null);
         builder.show();
     }
+
+    private String generarNumeroSecretoInternamente(boolean permitirRepetidos) {
+        Random rand = new Random();
+        ArrayList<Integer> digitos = new ArrayList<>();
+
+        while (digitos.size() < 4) {
+            int n = rand.nextInt(10);
+            if (permitirRepetidos || !digitos.contains(n)) {
+                digitos.add(n);
+            }
+        }
+
+        StringBuilder numero = new StringBuilder();
+        for (int d : digitos) {
+            numero.append(d);
+        }
+
+        return numero.toString();
+    }
+
+
 }

@@ -55,7 +55,21 @@
             android:textSize="16sp"
             android:layout_marginBottom="12dp" />
 
-        <!-- Futuro: lista de intentos anteriores -->
+        <!-- 📋 Lista de intentos anteriores -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Historial de intentos:"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:layout_marginTop="12dp" />
+
+        <LinearLayout
+            android:id="@+id/layoutHistorial"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="8dp"/>
 
     </LinearLayout>
 </ScrollView>
