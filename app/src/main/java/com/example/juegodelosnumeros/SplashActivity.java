@@ -15,7 +15,7 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
-        View splashLayout = findViewById(R.id.splashLayout); // o el ID raíz de tu layout
+        View splashLayout = findViewById(R.id.splashLayout);
         Animation fadeIn = AnimationUtils.loadAnimation(this, R.anim.fade_in);
         splashLayout.startAnimation(fadeIn);
 
@@ -27,6 +27,6 @@ public class SplashActivity extends AppCompatActivity {
                 startActivity(new Intent(SplashActivity.this, InicioActivity.class));
                 finish();
             }
-        }, 5500);
+        }, 4500);
     }
 }

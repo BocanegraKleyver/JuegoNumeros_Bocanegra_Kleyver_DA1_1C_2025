@@ -53,7 +53,7 @@ public class JuegoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_juego);
 
-        // Vincular vistas
+
         txtJugador = findViewById(R.id.txtJugador);
         txtIntento = findViewById(R.id.txtIntento);
         txtResultado = findViewById(R.id.txtResultado);
@@ -66,15 +66,17 @@ public class JuegoActivity extends AppCompatActivity {
         btnFinalizar = findViewById(R.id.btnFinalizar);
 
 
-        // Inicializar preferencias y Gson
+
         prefs = getSharedPreferences("mis_prefs", MODE_PRIVATE);
         gson = new Gson();
         listaJugadores = cargarJugadores();
 
         boolean continuar = getIntent().getBooleanExtra("continuar", false);
+        ayudasRestantes = prefs.getInt("juego_ayudas", 3); // carga lo que había, o 3 si es nuevo
+
 
         if (continuar) {
-            // Cargar partida guardada
+
             nombreJugador = prefs.getString("juego_jugador", "Jugador");
             numeroSecreto = prefs.getString("juego_numero", "");
             intentoActual = prefs.getInt("juego_intento", 1);
@@ -90,13 +92,13 @@ public class JuegoActivity extends AppCompatActivity {
             }
 
         } else {
-            // Nueva partida
+
             nombreJugador = getIntent().getStringExtra("nombreJugador");
             boolean permitirRepetidos = getIntent().getBooleanExtra("permitirRepetidos", false);
             numeroSecreto = generarNumeroSecreto(permitirRepetidos);
             intentoActual = 1;
 
-            // Guardar datos iniciales
+
             SharedPreferences.Editor editor = prefs.edit();
             editor.putString("juego_jugador", nombreJugador);
             editor.putString("juego_numero", numeroSecreto);
@@ -123,7 +125,7 @@ public class JuegoActivity extends AppCompatActivity {
                 String resultado = evaluarIntento(intento);
                 txtResultado.setText("Resultado: " + resultado);
 
-                // 📋 Guardar intento en historial
+
                 String entrada = "Intento " + intentoActual + ": " + intento + " → " + resultado;
                 historialIntentos.add(entrada);
                 agregarEntradaHistorial(entrada);
@@ -137,11 +139,11 @@ public class JuegoActivity extends AppCompatActivity {
                     txtIntento.setText("Intento " + intentoActual + " de " + MAX_INTENTOS);
                     inputNumero.setText("");
 
-                    // Guardar avance
+
                     SharedPreferences.Editor editor = prefs.edit();
                     editor.putInt("juego_intento", intentoActual);
 
-                    // 💾 También guardamos historial
+
                     String jsonHistorial = gson.toJson(historialIntentos);
                     editor.putString("juego_historial", jsonHistorial);
 
@@ -151,7 +153,7 @@ public class JuegoActivity extends AppCompatActivity {
         });
 
         btnVolverMenu.setOnClickListener(v -> {
-            finish(); // vuelve atrás, al menú
+            finish();
         });
 
         btnReiniciar.setOnClickListener(v -> {
@@ -206,6 +208,11 @@ public class JuegoActivity extends AppCompatActivity {
                         }
 
                         ayudasRestantes--;
+
+                        SharedPreferences.Editor editor = prefs.edit();
+                        editor.putInt("juego_ayudas", ayudasRestantes);
+                        editor.apply();
+
 
                         new AlertDialog.Builder(this)
                                 .setTitle("Resultado de la Ayuda")
@@ -263,7 +270,7 @@ public class JuegoActivity extends AppCompatActivity {
                 "¡Felicitaciones! Adivinaste el número." :
                 "Lo siento, el número era: " + numeroSecreto;
 
-        // Buscar jugador actual y actualizar
+
         for (Jugador j : listaJugadores) {
             if (j.getNombre().equals(nombreJugador)) {
                 if (gano) {
@@ -275,7 +282,7 @@ public class JuegoActivity extends AppCompatActivity {
             }
         }
 
-        // Guardar ranking actualizado
+
         SharedPreferences.Editor editor = prefs.edit();
         String json = gson.toJson(listaJugadores);
         editor.putString("jugadores_guardados", json);
@@ -286,10 +293,11 @@ public class JuegoActivity extends AppCompatActivity {
         clear.remove("juego_numero");
         clear.remove("juego_intento");
         clear.putBoolean("juego_enCurso", false);
+        clear.remove("juego_ayudas");
         clear.apply();
 
 
-        // Mostrar mensaje final
+
         new AlertDialog.Builder(this)
                 .setTitle(gano ? "Ganaste" : "Perdiste")
                 .setMessage(mensaje)
@@ -326,9 +334,9 @@ public class JuegoActivity extends AppCompatActivity {
 
     private void agregarEntradaHistorial(String texto) {
         TextView tv = new TextView(this);
-        tv.setTextSize(16); // 🔠 Tamaño un poco más grande
+        tv.setTextSize(16);
 
-        // 🎨 Preparar texto con colores por letra
+
         SpannableString spannable = new SpannableString(texto);
 
         int verde = getResources().getColor(android.R.color.holo_green_dark);
@@ -349,8 +357,5 @@ public class JuegoActivity extends AppCompatActivity {
         tv.setText(spannable);
         layoutHistorial.addView(tv);
     }
-
-
-
 
 }

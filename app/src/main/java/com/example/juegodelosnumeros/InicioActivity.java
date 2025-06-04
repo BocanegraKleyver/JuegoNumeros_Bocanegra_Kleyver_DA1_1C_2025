@@ -83,18 +83,18 @@ public class InicioActivity extends AppCompatActivity {
                 if (index >= 0 && index < listaJugadores.size()) {
                     Jugador jugadorSeleccionado = listaJugadores.get(index);
 
-                    // Más adelante le pasamos datos por Intent
+
                     Intent intent = new Intent(InicioActivity.this, JuegoActivity.class);
                     intent.putExtra("nombreJugador", jugadorSeleccionado.getNombre());
                     intent.putExtra("permitirRepetidos", switchRepetidos.isChecked());
 
-                    // Guardar estado inicial de la partida
+
                     SharedPreferences.Editor editor = prefs.edit();
                     editor.putString("juego_jugador", jugadorSeleccionado.getNombre());
                     editor.putString("juego_numero", generarNumeroSecretoInternamente(switchRepetidos.isChecked()));
                     editor.putInt("juego_intento", 1);
                     editor.putBoolean("juego_enCurso", true);
-                    editor.putBoolean("juego_repetidos", switchRepetidos.isChecked()); // ✅ Guardamos la elección del switch
+                    editor.putBoolean("juego_repetidos", switchRepetidos.isChecked());
                     editor.apply();
 
 
@@ -143,7 +143,7 @@ public class InicioActivity extends AppCompatActivity {
         adapterNombres.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerJugadores.setAdapter(adapterNombres);
 
-        // Listener para mostrar estadísticas del jugador
+
         spinnerJugadores.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -188,7 +188,7 @@ public class InicioActivity extends AppCompatActivity {
 
     private void mostrarDialogoNuevoJugador() {
         if (listaJugadores.size() >= 3) {
-            // Mostrar diálogo para eliminar un jugador existente
+
             String[] nombres = new String[listaJugadores.size()];
             for (int i = 0; i < listaJugadores.size(); i++) {
                 nombres[i] = listaJugadores.get(i).getNombre();
@@ -217,7 +217,7 @@ public class InicioActivity extends AppCompatActivity {
             return;
         }
 
-        // Diálogo normal de creación
+
         final EditText input = new EditText(this);
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Nuevo Jugador");
@@ -273,7 +273,7 @@ public class InicioActivity extends AppCompatActivity {
         cargarJugadores();
         configurarSpinner();
 
-        // 🔁 Restaurar selección del jugador activo después de configurar el spinner
+
         String jugadorActivo = prefs.getString("juego_jugador", null);
         if (jugadorActivo != null) {
             for (int i = 0; i < listaJugadores.size(); i++) {
